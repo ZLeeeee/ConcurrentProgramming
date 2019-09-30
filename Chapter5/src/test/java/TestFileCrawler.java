@@ -15,9 +15,10 @@ public class TestFileCrawler {
         });
         FileIndexer fileIndexer = new FileIndexer(blockingDeque);
         new Thread(fileCrawler).start();
-        new Thread(fileIndexer).start();
+        Thread thread = new Thread(fileIndexer);
+        thread.start();
+        thread.interrupt();
         try {
-
             Thread.sleep(3000);
         }catch (Exception e){
             e.printStackTrace();

@@ -20,8 +20,11 @@ public class FileIndexer implements Runnable {
                 indexFile(blockingDeque.take());
             }
         }catch (Exception e){
+            System.out.println("thread interrupted...");
+            Thread.currentThread().interrupt();
             e.printStackTrace();
         }
+        System.out.println("thread quit!");
     }
     private void indexFile(File file){
         String name = file.getName();
