@@ -5,5 +5,6 @@ public class TestFuture {
         PreLoad preLoad = new PreLoad();
         preLoad.start();
         System.out.println(preLoad.get());
+
     }
 }

@@ -22,12 +22,11 @@ public class Render {
             });
         }
         renderText();
-
         for (int i = 0; i < list.size(); i++) {
             Future<Integer> f = null;
             try {
                 f = completionService.take();
-                renderImage(f.get(0,TimeUnit.SECONDS));
+                renderImage(f.get(1,TimeUnit.MILLISECONDS));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e){
