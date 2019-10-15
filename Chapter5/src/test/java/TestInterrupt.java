@@ -1,11 +1,8 @@
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class TestInterrupt {
@@ -64,6 +61,75 @@ public class TestInterrupt {
     }
     @Test
     public void test4(){
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        List<Integer> listSync = new ArrayList<Integer>() {
+            @Override
+            public synchronized boolean add(Integer e) {
+                return super.add(e);
+            }
+        };
+        List<Integer> listRW = new ArrayList<Integer>() {
+            final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
+            @Override
+            public boolean add(Integer e) {
+                try {
+                    reentrantReadWriteLock.writeLock().lock();
+                    return super.add(e);
+                }finally {
+                    reentrantReadWriteLock.writeLock().unlock();
+                }
+            }
+            @Override
+            public Integer get(int i){
+                try {
+                    reentrantReadWriteLock.readLock().lock();
+                    return super.get(i);
+                }finally {
+                    reentrantReadWriteLock.readLock().unlock();
+                }
+            }
+        };
+        Long aLong = timeTest(listSync);
+        Long aLong1 = timeTest(listRW);
+        System.out.println("RW:"+aLong1);
+        System.out.println("sync:"+aLong);
+    }
+    public Long timeTest(List<Integer> listSync){
+        CountDownLatch endLatch = new CountDownLatch(100);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        for (int i = 0; i < 10000; i++) {
+            listSync.add(i);
+        }
+        for (int i = 0; i < 100; i++) {
+            new Thread(()->{
+                Random random = new Random();
+                try {
+                    startLatch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (random.nextInt(10)>3){
+                    for (int j = 0; j < 10000; j++) {
+                        System.out.println(Thread.currentThread().getName()+" : "+j);
+                    }
+                }else{
+                    for (int j = 0; j < 10000; j++) {
+                        listSync.add(j);
+                    }
+                }
+                endLatch.countDown();
+            }).start();
+        }
+        try {
+            startLatch.countDown();
+            long startTime = System.currentTimeMillis();
+            endLatch.await();
+            long endTime = System.currentTimeMillis();
+            long l = endTime - startTime;
+            System.out.println("Time Millis :"+l);
+            return l;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return 0L;
+        }
     }
 }
