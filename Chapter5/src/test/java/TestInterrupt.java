@@ -1,7 +1,10 @@
+import latch.OneShotLatch;
 import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -130,6 +133,21 @@ public class TestInterrupt {
         } catch (InterruptedException e) {
             e.printStackTrace();
             return 0L;
+        }
+    }
+    @Test
+    public void testOneShotLatch(){
+        ReentrantLock oneShotLatch = new ReentrantLock();
+        for (int i = 0; i < 5; i++) {
+            new Thread(()->{
+                try {
+                    oneShotLatch.lock();
+                    TimeUnit.SECONDS.sleep(5);
+                    oneShotLatch.unlock();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 }
